@@ -13,7 +13,7 @@ import datetime
 c_y = datetime.datetime.now (). year
 username = input("Your name?")
 
-age = int(input(f"{username}, your age?"))
+age = float(input(f"{username}, your age?"))
 target_age = 100
 years = target_age - age
 print(f"{age} years old! Nice! After {years} years you will be {target_age} years old :)")
