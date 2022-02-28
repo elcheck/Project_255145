@@ -21,4 +21,3 @@ else:
     else:
         order_list = order_list + ", " + str(n2) + ", " + str(n1)
 print(order_list)
-
