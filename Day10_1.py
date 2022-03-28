@@ -15,6 +15,7 @@ class Song:
         print(self.author)
         for line in self.lyrics:
             print(line.upper())
+        return (self)
 class Rap(Song):
     def break_it(self,max_lines=3,drop='yeah'):
         print(self.title)
