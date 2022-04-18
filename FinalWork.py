@@ -1,4 +1,5 @@
 import sqlite3
+import random
 class PlayersDB:
     def __init__(self, dbpath):
         self.conn = sqlite3.connect(dbpath)
@@ -26,10 +27,43 @@ class PlayersDB:
     def close(self):
         self.conn.close()
 class Player:
+    def __init__(self,name,score):
+        self.name=name
+        self.score=score
+    def intro(self):
+        print (f"{self.name}! Welcome to the game! Your score is {self.score}")
+class GuessLetters:
+    def __init__(self,sentence):
+        self.sentence=sentence
+    def play(self):
+        result = ""
+        the_name=self.sentence
+        print(the_name)
+        for word in the_name.split(" "):
+            result += "*" * len(word) + " "
+        print(result)
+        while ("*" in result):
+            guess = input("Guess a character: ").upper()
 
-    pass
-class GuessWord:
-    pass
+            if len(guess) != 1:
+                print("Please enter only one char!")
+            else:
+                count = the_name.count(guess)  # cik tādu burtu ir vārdā?
+                if count > 0:
+                    process = ""
+                    for c1, c2 in zip(the_name, result):
+                        if c1 == guess:
+                            process += c1
+                        else:
+                            process += c2  # create new string by adding char to old string
+                    result = process
+                else:
+                    print(f"Sorry, no '{guess}' in the text")
+
+                print(f"The result is {result}")
+        print("Congratulations!!! You win!")
+        return 1
+
 
 if __name__ == '__main__':
     username=input('Enter user name: ')
@@ -43,43 +77,23 @@ if __name__ == '__main__':
     id=player[0]
     if id==0:
         session.insert_player(username)
-        print(f"Hello {username}! Welcome to the game!")
         player = session.find_player(username)
         id=player[0]
-    else:
-        print (f"Hello {username}! Nice to see you again!")
     score = player[1]
+    player1=Player(username,score)
+    player1.intro()
     # here should be a code of playing game
     with open('sentences.txt', encoding="utf-8") as f:  # create a file object
          lines = f.readlines()
-    the_name=lines[0].upper()
-    print (the_name)
+#    the_name=random.choice(lines).upper()
+    game=GuessLetters(random.choice(lines).replace('\n','').upper())
+    repeat = 'y'
+    while repeat != '':
+        flag=game.play()
     #    the_name = input("Enter the text: ").upper()
-    result = ""
-    for word in the_name.split(" "):
-        result += "*" * len(word) + " "
-    print(result)
-    while ("*" in result):
-        guess = input("Guess a character: ").upper()
-
-        if len(guess) != 1:
-            print("Please enter only one char!")
-        else:
-            count = the_name.count(guess)  # cik tādu burtu ir vārdā?
-            if count > 0:
-                process = ""
-                for c1, c2 in zip(the_name, result):
-                    if c1 == guess:
-                        process += c1
-                    else:
-                        process += c2  # create new string by adding char to old string
-                result = process
-            else:
-                print(f"Sorry, no '{guess}' in the text")
-
-            print(f"The result is {result}")
-    print("Congratulations!!! You win!")
-    score+=1
+        if flag==1:
+            score+=1
+        repeat=input('Enter any symbol to continue the game')
     print(f"Your score is {score}")
     session.update_result(id,score)
     session.close()
