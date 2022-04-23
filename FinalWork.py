@@ -1,3 +1,4 @@
+# Laura Mandele, Jeļena Čekušina
 import sqlite3
 import requests
 import string
