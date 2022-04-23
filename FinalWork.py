@@ -1,5 +1,17 @@
 import sqlite3
-import random
+import requests
+import string
+def get_quote():
+    url="https://api.goprogram.ai/inspiration"
+    response = requests.get(url)
+    quote=''
+    author=''
+    if response.status_code==200:
+        data_from_json=response.json()
+        quote=data_from_json['quote']
+        author=data_from_json['author']
+    return (quote,author)
+
 class PlayersDB:
     def __init__(self, dbpath):
         self.conn = sqlite3.connect(dbpath)
@@ -17,6 +29,7 @@ class PlayersDB:
         self.conn.commit()
     def delete_player(self, name):
         self.cur.execute('DELETE FROM players WHERE username = (?);', (name,))
+        self.conn.commit()
     def find_player(self, by_name=""):
         try:
             list_of_results = self.cur.execute('SELECT id, score FROM players WHERE username = (?);', (by_name,)).fetchall()
@@ -24,6 +37,14 @@ class PlayersDB:
         except:
             id=(0,)
         return id
+    def get_rating(self):
+        list_of_results = self.cur.execute('SELECT username, score FROM players ORDER by score DESC LIMIT 3;').fetchall()
+        print("Are you among our best players?:")
+        i=1
+        for pl in list_of_results:
+            name,score=pl
+            print(f"Place: {i}. Name: {name} Score: {score}")
+            i+=1
     def close(self):
         self.conn.close()
 class Player:
@@ -32,19 +53,21 @@ class Player:
         self.score=score
     def intro(self):
         print (f"{self.name}! Welcome to the game! Your score is {self.score}")
-class GuessLetters:
-    def __init__(self,sentence):
+class GuessAuthor:
+    def __init__(self,sentence="Test"):
         self.sentence=sentence
     def play(self):
         result = ""
-        the_name=self.sentence
-        print(the_name)
-        for word in the_name.split(" "):
-            result += "*" * len(word) + " "
+        the_name=self.sentence.upper()
+        for s in the_name:
+            if s in string.punctuation or s == " ":
+                result+=s
+            else:
+                result+="*"
         print(result)
         while ("*" in result):
-            guess = input("Guess a character: ").upper()
-
+            guess = input("Guess a character or press ENTER if you quit: ").upper()
+            if guess=="": return 0
             if len(guess) != 1:
                 print("Please enter only one char!")
             else:
@@ -63,8 +86,6 @@ class GuessLetters:
                 print(f"The result is {result}")
         print("Congratulations!!! You win!")
         return 1
-
-
 if __name__ == '__main__':
     username=input('Enter user name: ')
     if username=='':
@@ -82,21 +103,19 @@ if __name__ == '__main__':
     score = player[1]
     player1=Player(username,score)
     player1.intro()
-    # here should be a code of playing game
-    with open('sentences.txt', encoding="utf-8") as f:  # create a file object
-         lines = f.readlines()
-#    the_name=random.choice(lines).upper()
-    game=GuessLetters(random.choice(lines).replace('\n','').upper())
+    game=GuessAuthor()
     repeat = 'y'
     while repeat != '':
+        quote_and_author=get_quote()
+        print ("The inspiration quote for you:")
+        print(f"\"{quote_and_author[0]}\"")
+        print ("Guess, who is an author of this quote?")
+        game.sentence=quote_and_author[1]
         flag=game.play()
-    #    the_name = input("Enter the text: ").upper()
         if flag==1:
             score+=1
-        repeat=input('Enter any symbol to continue the game')
+        repeat=input('Enter any symbol to continue the game or ENTER to exit: ')
     print(f"Your score is {score}")
     session.update_result(id,score)
+    session.get_rating()
     session.close()
-
-
-
